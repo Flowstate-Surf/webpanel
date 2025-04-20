@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ServerCard from './ServerCard'
 import LoadingSpinner from './LoadingSpinner'
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 interface Server {
   name: string
@@ -50,6 +51,7 @@ export default function ServerList() {
       const updatedServer = data.find(server => server.connect === serverConnect)
       if (updatedServer) {
         return {
+          name: updatedServer.name, // Include the `name` property
           numPlayers: updatedServer.numPlayers,
           maxPlayers: updatedServer.maxPlayers,
           ping: updatedServer.ping

@@ -1,11 +1,10 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { ReactNode, useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Filter, ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react'
-import Header from '@/components/Header'
-import Footer from '@/components/Footer'
 import LoadingSpinner from '@/components/LoadingSpinner'
+import Footer from '@/components/Footer'
 
 interface MapData {
   mapname: string
@@ -17,14 +16,31 @@ interface MapData {
   mapper: string
 }
 
-const Input = ({ className = '', ...props }) => (
+interface PaginationLinkProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  children?: ReactNode;
+  isActive?: boolean;
+  className?: string;
+}
+
+const Header: React.FC<{ setIsDarkMode: React.Dispatch<React.SetStateAction<boolean>> }> = ({ setIsDarkMode }) => (
+  <header className="p-4 bg-gray-800">
+    <button
+      onClick={() => setIsDarkMode((prev) => !prev)}
+      className="text-white text-sm font-medium rounded-md px-4 py-2 bg-purple-600 hover:bg-purple-700"
+    >
+      Toggle Dark Mode
+    </button>
+  </header>
+)
+
+const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = ({ className = '', ...props }) => (
   <input
     className={`flex h-12 w-full rounded-md border border-gray-700 bg-gray-800 px-4 py-2 text-sm text-gray-100 ring-offset-gray-900 file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
     {...props}
   />
 )
 
-const Select = ({ children, className = '', ...props }) => (
+const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement>> = ({ children, className = '', ...props }) => (
   <select
     className={`flex h-12 w-full items-center justify-between rounded-md border border-gray-700 bg-gray-800 px-4 py-2 text-sm text-gray-100 ring-offset-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
     {...props}
@@ -33,31 +49,31 @@ const Select = ({ children, className = '', ...props }) => (
   </select>
 )
 
-const Card = ({ children, className = '', ...props }) => (
+const Card: React.FC<{ children?: ReactNode; className?: string }> = ({ children, className = '', ...props }) => (
   <div className={`rounded-2xl border border-gray-700 bg-gray-800 text-gray-100 shadow-lg ${className}`} {...props}>
     {children}
   </div>
 )
 
-const CardHeader = ({ children, className = '', ...props }) => (
+const CardHeader: React.FC<{ children?: ReactNode; className?: string }> = ({ children, className = '', ...props }) => (
   <div className={`flex flex-col space-y-1.5 p-6 ${className}`} {...props}>
     {children}
   </div>
 )
 
-const CardTitle = ({ children, className = '', ...props }) => (
+const CardTitle: React.FC<{ children?: ReactNode; className?: string }> = ({ children, className = '', ...props }) => (
   <h3 className={`text-2xl font-semibold leading-none tracking-tight ${className}`} {...props}>
     {children}
   </h3>
 )
 
-const CardContent = ({ children, className = '', ...props }) => (
+const CardContent: React.FC<{ children?: ReactNode; className?: string }> = ({ children, className = '', ...props }) => (
   <div className={`p-6 pt-0 ${className}`} {...props}>
     {children}
   </div>
 )
 
-const Badge = ({ children, className = '', ...props }) => (
+const Badge: React.FC<{ children?: ReactNode; className?: string }> = ({ children, className = '', ...props }) => (
   <span
     className={`inline-flex items-center rounded-full border border-purple-500 px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 bg-purple-500 text-white ${className}`}
     {...props}
@@ -66,7 +82,7 @@ const Badge = ({ children, className = '', ...props }) => (
   </span>
 )
 
-const Pagination = ({ children, className = '', ...props }) => (
+const Pagination: React.FC<{ children?: ReactNode; className?: string }> = ({ children, className = '', ...props }) => (
   <nav
     role="navigation"
     aria-label="pagination"
@@ -77,19 +93,24 @@ const Pagination = ({ children, className = '', ...props }) => (
   </nav>
 )
 
-const PaginationContent = ({ children, className = '', ...props }) => (
+const PaginationContent: React.FC<{ children?: ReactNode; className?: string }> = ({ children, className = '', ...props }) => (
   <ul className={`flex flex-row items-center gap-1 ${className}`} {...props}>
     {children}
   </ul>
 )
 
-const PaginationItem = ({ children, className = '', ...props }) => (
+const PaginationItem: React.FC<{ children?: ReactNode; className?: string }> = ({ children, className = '', ...props }) => (
   <li className={className} {...props}>
     {children}
   </li>
 )
 
-const PaginationLink = ({ children, isActive = false, className = '', ...props }) => (
+const PaginationLink: React.FC<PaginationLinkProps> = ({ 
+  children,
+  isActive = false, 
+  className = '', 
+  ...props 
+}) => (
   <button
     aria-current={isActive ? "page" : undefined}
     className={`flex h-10 w-10 items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${
@@ -103,21 +124,21 @@ const PaginationLink = ({ children, isActive = false, className = '', ...props }
   </button>
 )
 
-const PaginationPrevious = ({ className = '', ...props }) => (
+const PaginationPrevious: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({ className = '', ...props }) => (
   <PaginationLink className={`gap-1 pl-2.5 ${className}`} {...props}>
     <ChevronLeft className="h-4 w-4" />
     <span className="sr-only">Previous</span>
   </PaginationLink>
 )
 
-const PaginationNext = ({ className = '', ...props }) => (
+const PaginationNext: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({ className = '', ...props }) => (
   <PaginationLink className={`gap-1 pr-2.5 ${className}`} {...props}>
     <span className="sr-only">Next</span>
     <ChevronRight className="h-4 w-4" />
   </PaginationLink>
 )
 
-const PaginationEllipsis = ({ className = '', ...props }) => (
+const PaginationEllipsis: React.FC<{ className?: string }> = ({ className = '', ...props }) => (
   <span
     className={`flex h-10 w-10 items-center justify-center ${className}`}
     {...props}
@@ -176,26 +197,26 @@ export default function MapExplorer() {
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber)
 
-  const pageNumbers = []
+  const pageNumbers: number[] = [] // Explicit typing
   for (let i = 1; i <= Math.ceil(filteredMaps.length / mapsPerPage); i++) {
     pageNumbers.push(i)
   }
-
+  
   const renderPageNumbers = () => {
-    let startPage = Math.max(1, currentPage - Math.floor(maxPages / 2))
-    let endPage = Math.min(pageNumbers.length, startPage + maxPages - 1)
-
+    let startPage = Math.max(1, currentPage - Math.floor(maxPages / 2));
+    const endPage = Math.min(pageNumbers.length, startPage + maxPages - 1);
+  
     if (endPage - startPage + 1 < maxPages) {
-      startPage = Math.max(1, endPage - maxPages + 1)
+      startPage = Math.max(1, endPage - maxPages + 1);
     }
-
+  
     return pageNumbers.slice(startPage - 1, endPage).map((number) => (
       <PaginationItem key={number}>
         <PaginationLink onClick={() => paginate(number)} isActive={currentPage === number}>
           {number}
         </PaginationLink>
       </PaginationItem>
-    ))
+    ));
   }
 
   const mapVariants = {

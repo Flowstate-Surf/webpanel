@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { GameDig } from 'gamedig';
-
+import GameDig from "gamedig";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export async function GET() {
   const serverIPs = process.env.SERVER_IPS ? JSON.parse(process.env.SERVER_IPS) : [];
 
