@@ -17,7 +17,8 @@ interface LeaderboardWrapperProps {
 export default function LeaderboardWrapper({ initialLeaderboard }: LeaderboardWrapperProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
-  const playersPerPage = 10;
+  //const playersPerPage = 50;
+  const [playersPerPage, setPlayersPerPage] = useState(10);
   const { theme } = useTheme();
 
   useEffect(() => {
@@ -45,6 +46,7 @@ export default function LeaderboardWrapper({ initialLeaderboard }: LeaderboardWr
 
   return (
     <div className={`space-y-4 ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} p-4 rounded-lg`}>
+      {/* Render different depending on the device */}
       {isMobile ? (
         <MobileLeaderboard
           currentPlayers={currentPlayers}
@@ -66,6 +68,20 @@ export default function LeaderboardWrapper({ initialLeaderboard }: LeaderboardWr
         paginate={paginate}
         theme={theme}
       />
+    {/*Adding a dialog for the user to choose how many users show up in the leaderboard */}
+    <div className = "flex justify-end">
+        <label className = "text-sm mr-2">Show:</label>
+        <select
+          className="bg-gray-700 text-white p-1 rounded border border-gray-600"
+          value={playersPerPage}
+          onChange={(e) => setPlayersPerPage(Number(e.target.value))}
+        >
+          <option value={10}>10</option>
+          <option value={25}>25</option>
+          <option value={50}>50</option>
+          <option value={100}>100</option>
+        </select>
+      </div>
     </div>
   );
 }
