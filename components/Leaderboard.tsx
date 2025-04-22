@@ -1,10 +1,23 @@
-'use client'
+'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useTheme } from '../context/ThemeContext'
+import { useTheme } from '../context/ThemeContext';
 import LeaderboardWrapper from './LeaderboardWrapper';
 
-async function getPlayers() {
+// Define the player interface here or import from a shared types file
+interface PlayerData {
+  PlayerName: string;
+  SteamID: string;
+  GlobalPoints: number;
+  mapsCompleted?: number;
+  serverRecords?: number;
+  bonusRecords?: number;
+  stageRecords?: number;
+}
+//**TODO 
+// Add a search dynamic search function so you can search up players to see how many points they have and what rank they are. Also display them with comparision to other users
+
+async function getPlayers(): Promise<PlayerData[]> {
   const res = await fetch('http://localhost:3000/api/getPlayers', { cache: 'no-store' });
   if (!res.ok) {
     throw new Error('Failed to fetch players');
@@ -14,7 +27,7 @@ async function getPlayers() {
 
 export default function Leaderboard() {
   const { theme } = useTheme();
-  const [leaderboard, setLeaderboard] = useState([]);
+  const [leaderboard, setLeaderboard] = useState<PlayerData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -62,41 +75,41 @@ export default function Leaderboard() {
           <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 md:mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-200">In-game Ranks</h2>
           <ul className="space-y-2">
             {[
-                        { rank: "☠ God", color: "text-red-400", top: "1" },
-                        { rank: "✦ Godly", color: "text-red-400", top: "2" },
-                        { rank: "✹ Godlike",color: "text-red-400", top: "3" },
-                        { rank: "✧ MYTHICAL", color: "text-purple-400", top: "10" },
-                        { rank: "MYTHICAL", color: "text-yellow-400", top: "50" },
-                        { rank: "✯ ZENITH", color: "text-blue-400",  top: "3%" },
-                        { rank: "ZENITH", color: "text-yellow-600", top: "5%" },
-                        { rank: "▲ ASCENDENT", color: "text-gray-400", top: "8%" },
-                        { rank: "ASCENDENT", color: "text-yellow-600", top: "10%" },
-                        { rank: "❂ GRANDMASTER", color: "text-gray-400", top: "12%" },
-                        { rank: "GRANDMASTER", color: "text-yellow-600", top: "15%" },
-                        { rank: "✩ LEGENDARY", color: "text-gray-400", top: "18%" },
-                        { rank: "LEGENDARY", color: "text-yellow-600", top: "20%" },
-                        { rank: "✶ MASTER", color: "text-gray-400", top: "25%" },
-                        { rank: "MASTER", color: "text-yellow-600", top: "30%" },
-                        { rank: "✸ ELITE", color: "text-gray-400", top: "35%" },
-                        { rank: "ELITE", color: "text-yellow-600", top: "40%" },
-                        { rank: "✷ PRO", color: "text-gray-400", top: "45%" },
-                        { rank: "PRO", color: "text-yellow-600", top: "50%" },
-                        { rank: "✹ EXPERT", color: "text-gray-400", top: "55%" },
-                        { rank: "EXPERT", color: "text-yellow-600", top: "60%" },
-                        { rank: "❈ VETERAN", color: "text-gray-400", top: "65%" },
-                        { rank: "VETERAN", color: "text-yellow-600", top: "70%" },
-                        { rank: "✱ SKILLED", color: "text-gray-400", top: "75%" },
-                        { rank: "SKILLED", color: "text-yellow-600", top: "78%" },
-                        { rank: "✧ APPRENTICE", color: "text-gray-400", top: "82%" },
-                        { rank: "APPRENTICE", color: "text-yellow-600", top: "85%" },
-                        { rank: "✥ NOVICE", color: "text-gray-400", top: "88%" },
-                        { rank: "NOVICE", color: "text-yellow-600", top: "90%" },
-                        { rank: "✪ ROOKIE", color: "text-gray-400", top: "92%" },
-                        { rank: "ROOKIE", color: "text-yellow-600", top: "95%" },
-                        { rank: "✾ BEGINNER", color: "text-gray-400", top: "97%" },
-                        { rank: "BEGINNER", color: "text-yellow-600", top: "98%" },
-                        { rank: "✿ NEW", color: "text-gray-400", top: "99%" },
-                        { rank: "Unranked", color: "text-yellow-600", top: "Unranked" },
+              { rank: "☠ God", color: "text-red-400", top: "1" },
+              { rank: "✦ Godly", color: "text-red-400", top: "2" },
+              { rank: "✹ Godlike", color: "text-red-400", top: "3" },
+              { rank: "✧ MYTHICAL", color: "text-purple-400", top: "10" },
+              { rank: "MYTHICAL", color: "text-yellow-400", top: "50" },
+              { rank: "✯ ZENITH", color: "text-blue-400", top: "3%" },
+              { rank: "ZENITH", color: "text-yellow-600", top: "5%" },
+              { rank: "▲ ASCENDENT", color: "text-gray-400", top: "8%" },
+              { rank: "ASCENDENT", color: "text-yellow-600", top: "10%" },
+              { rank: "❂ GRANDMASTER", color: "text-gray-400", top: "12%" },
+              { rank: "GRANDMASTER", color: "text-yellow-600", top: "15%" },
+              { rank: "✩ LEGENDARY", color: "text-gray-400", top: "18%" },
+              { rank: "LEGENDARY", color: "text-yellow-600", top: "20%" },
+              { rank: "✶ MASTER", color: "text-gray-400", top: "25%" },
+              { rank: "MASTER", color: "text-yellow-600", top: "30%" },
+              { rank: "✸ ELITE", color: "text-gray-400", top: "35%" },
+              { rank: "ELITE", color: "text-yellow-600", top: "40%" },
+              { rank: "✷ PRO", color: "text-gray-400", top: "45%" },
+              { rank: "PRO", color: "text-yellow-600", top: "50%" },
+              { rank: "✹ EXPERT", color: "text-gray-400", top: "55%" },
+              { rank: "EXPERT", color: "text-yellow-600", top: "60%" },
+              { rank: "❈ VETERAN", color: "text-gray-400", top: "65%" },
+              { rank: "VETERAN", color: "text-yellow-600", top: "70%" },
+              { rank: "✱ SKILLED", color: "text-gray-400", top: "75%" },
+              { rank: "SKILLED", color: "text-yellow-600", top: "78%" },
+              { rank: "✧ APPRENTICE", color: "text-gray-400", top: "82%" },
+              { rank: "APPRENTICE", color: "text-yellow-600", top: "85%" },
+              { rank: "✥ NOVICE", color: "text-gray-400", top: "88%" },
+              { rank: "NOVICE", color: "text-yellow-600", top: "90%" },
+              { rank: "✪ ROOKIE", color: "text-gray-400", top: "92%" },
+              { rank: "ROOKIE", color: "text-yellow-600", top: "95%" },
+              { rank: "✾ BEGINNER", color: "text-gray-400", top: "97%" },
+              { rank: "BEGINNER", color: "text-yellow-600", top: "98%" },
+              { rank: "✿ NEW", color: "text-gray-400", top: "99%" },
+              { rank: "Unranked", color: "text-yellow-600", top: "Unranked" },
             ].map((item, index) => (
               <li key={index} className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'} rounded-lg p-2 sm:p-3 flex justify-between items-center`}>
                 <span className={`font-semibold ${item.color} text-sm sm:text-base`}>[{item.rank}]</span>
