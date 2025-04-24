@@ -10,7 +10,7 @@ interface PlayerData {
   
   // Generate all possible [id] routes for static export
   export async function generateStaticParams() {
-    const res = await fetch('http://localhost:3000/api/getPlayers', {
+    const res = await fetch('/api/getPlayers', {
       cache: 'no-store',
     });
   
@@ -28,7 +28,7 @@ interface PlayerData {
   
   // Actual page per player
   export default async function LeaderboardPlayerPage({ params }: { params: { id: string } }) {
-    const playerRes = await fetch(`http://localhost:3000/api/getPlayer?id=${params.id}`, {
+    const playerRes = await fetch(`/api/getPlayer?id=${params.id}`, {
       cache: 'no-store',
     });
   

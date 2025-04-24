@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
-import { useTheme } from '../context/ThemeContext';
+import React, { useState, useMemo } from 'react';
 import LeaderboardRow from './LeaderboardRow';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useTheme } from '../context/ThemeContext';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 interface PlayerData {
@@ -17,175 +18,199 @@ interface PlayerData {
 
 interface LeaderboardWrapperProps {
   initialLeaderboard: PlayerData[];
+  searchQuery: string;
 }
 
-export default function LeaderboardWrapper({ initialLeaderboard }: LeaderboardWrapperProps) {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [playersPerPage, setPlayersPerPage] = useState(10);
-  const [searchQuery, setSearchQuery] = useState('');
+export default function LeaderboardWrapper({
+  initialLeaderboard,
+  searchQuery,
+}: LeaderboardWrapperProps) {
   const { theme } = useTheme();
+  const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [highlightedSteamID, setHighlightedSteamID] = useState<string | null>(null);
 
-  const getPointsStyle = (rank: number) => {
-    if (rank === 1) return 'bg-yellow-400 text-gray-900';
-    if (rank === 2) return 'bg-gray-300 text-gray-900';
-    if (rank === 3) return 'bg-yellow-700 text-white';
-    return theme === 'dark' ? 'bg-gray-600 text-white' : 'bg-gray-200 text-gray-800';
-  };
-
-  const sortedLeaderboard = useMemo(() => {
-    return [...initialLeaderboard].sort((a, b) => b.GlobalPoints - a.GlobalPoints);
+  const fullRankedList = useMemo(() => {
+    return initialLeaderboard.map((player, index) => ({
+      ...player,
+      rank: index + 1,
+    }));
   }, [initialLeaderboard]);
 
-  const { currentPlayers, highlightedId, totalPages } = useMemo(() => {
-    const trimmedQuery = searchQuery.trim().toLowerCase();
-    let players: PlayerData[] = [];
-    let highlightedId: string | null = null;
-
-    if (trimmedQuery) {
-      const matchIndex = sortedLeaderboard.findIndex(
-        (player) => player.PlayerName.toLowerCase().startsWith(trimmedQuery)
-      );
-
-      if (matchIndex !== -1) {
-        const start = Math.max(0, matchIndex - 4);
-        const end = Math.min(sortedLeaderboard.length, start + 10);
-        players = sortedLeaderboard.slice(start, end);
-        highlightedId = sortedLeaderboard[matchIndex].SteamID;
+  const getBestMatchIndex = (query: string, players: PlayerData[]): number => {
+    const lower = query.toLowerCase();
+    let bestIndex = -1;
+    let bestScore = Infinity;
+    players.forEach((player, index) => {
+      const name = player.PlayerName.toLowerCase();
+      if (name === lower) {
+        bestIndex = index;
+        bestScore = 0;
+      } else if (name.includes(lower)) {
+        const score = name.indexOf(lower) + name.length;
+        if (score < bestScore) {
+          bestIndex = index;
+          bestScore = score;
+        }
       }
+    });
+    return bestIndex;
+  };
+
+  const totalPages = useMemo(() => {
+    return Math.ceil(fullRankedList.length / pageSize);
+  }, [fullRankedList.length, pageSize]);
+
+  const displayedPlayers = useMemo(() => {
+    if (searchQuery.trim()) {
+      const index = getBestMatchIndex(searchQuery, fullRankedList);
+      if (index === -1) return [];
+      const half = Math.floor(10 / 2);
+      const start = Math.max(0, index - half);
+      const end = start + 10;
+      setHighlightedSteamID(fullRankedList[index].SteamID);
+      return fullRankedList.slice(start, end);
+    }
+
+    const start = (currentPage - 1) * pageSize;
+    return fullRankedList.slice(start, start + pageSize);
+  }, [searchQuery, fullRankedList, currentPage, pageSize]);
+
+  const paginate = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  const getPageRange = (): (number | string)[] => {
+    const range: (number | string)[] = [];
+    const siblingCount = 1;
+    const totalNumbers = siblingCount * 2 + 5;
+    if (totalPages <= totalNumbers) {
+      for (let i = 1; i <= totalPages; i++) range.push(i);
     } else {
-      const last = currentPage * playersPerPage;
-      const first = last - playersPerPage;
-      players = sortedLeaderboard.slice(first, last);
+      const leftSiblingIndex = Math.max(currentPage - siblingCount, 2);
+      const rightSiblingIndex = Math.min(currentPage + siblingCount, totalPages - 1);
+
+      range.push(1);
+      if (leftSiblingIndex > 2) range.push('...');
+      for (let i = leftSiblingIndex; i <= rightSiblingIndex; i++) range.push(i);
+      if (rightSiblingIndex < totalPages - 1) range.push('...');
+      range.push(totalPages);
     }
-
-    return {
-      currentPlayers: players,
-      highlightedId,
-      totalPages: Math.ceil(sortedLeaderboard.length / playersPerPage),
-    };
-  }, [searchQuery, currentPage, playersPerPage, sortedLeaderboard]);
-
-  const paginate = (page: number) => setCurrentPage(page);
-
-  const getPageRange = () => {
-    const delta = 2;
-    const pages = [];
-    const total = totalPages;
-
-    for (let i = 1; i <= total; i++) {
-      if (i === 1 || i === total || (i >= currentPage - delta && i <= currentPage + delta)) {
-        pages.push(i);
-      } else if (pages[pages.length - 1] !== '...') {
-        pages.push('...');
-      }
-    }
-
-    return pages;
+    return range;
   };
 
   return (
-    <div className={`space-y-4 ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} p-4 rounded-lg`}>
-      {/* Search */}
-      <div className="flex justify-end">
-        <input
-          type="text"
-          placeholder="Search player..."
-          value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value);
-            setCurrentPage(1);
-          }}
-          className="px-3 py-2 mb-2 rounded border border-gray-600 bg-gray-800 text-white text-sm w-64"
-        />
-      </div>
-
-      {/* Header */}
-      <div className="px-4 py-2 text-xs font-semibold uppercase tracking-wider bg-[#1a1f2e] text-gray-400 rounded-t-lg flex justify-between">
-        <div className="w-1/6">Rank</div>
-        <div className="w-3/6">Player</div>
-        <div className="w-2/6 text-right">Points</div>
-      </div>
-
-      {/* Player Rows with animation */}
-      <div className={`space-y-2 transition-all duration-500 ease-in-out ${searchQuery ? 'animate-fade-slide' : ''}`}>
-        {currentPlayers.length > 0 ? (
-          currentPlayers.map((player) => {
-            const globalIndex = sortedLeaderboard.findIndex(p => p.SteamID === player.SteamID);
-            return (
+    <div className="space-y-4">
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={`${currentPage}-${pageSize}-${searchQuery}`} // unique key per transition
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.25 }}
+          className="space-y-2"
+        >
+          {displayedPlayers.length > 0 ? (
+            displayedPlayers.map((player) => (
               <LeaderboardRow
                 key={player.SteamID}
                 player={{
                   id: player.SteamID,
                   name: player.PlayerName,
                   points: player.GlobalPoints,
-                  rank: globalIndex + 1,
-                  mapsCompleted: player.mapsCompleted ?? 0,
-                  serverRecords: player.serverRecords ?? 0,
-                  bonusRecords: player.bonusRecords ?? 0,
-                  stageRecords: player.stageRecords ?? 0,
+                  rank: player.rank,
+                  mapsCompleted: player.mapsCompleted,
+                  serverRecords: player.serverRecords,
+                  bonusRecords: player.bonusRecords,
+                  stageRecords: player.stageRecords,
                 }}
-                getPointsStyle={getPointsStyle}
-                isHighlighted={player.SteamID === highlightedId}
+                isHighlighted={player.SteamID === highlightedSteamID}
               />
-            );
-          })
-        ) : (
-          <div className="text-center text-gray-400 text-sm">No players found.</div>
-        )}
-      </div>
+            ))
+          ) : (
+            <div className="text-center text-sm text-gray-500">No players found.</div>
+          )}
+        </motion.div>
+      </AnimatePresence>
 
-      {/* Pagination */}
-      {!searchQuery && (
-        <div className="flex justify-center space-x-1 flex-wrap items-center">
-          <button
-            onClick={() => paginate(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="px-2 py-1 text-sm bg-gray-700 text-white rounded disabled:opacity-50"
-          >
-            <FaChevronLeft />
-          </button>
-          {getPageRange().map((page, index) => (
+      {!searchQuery && totalPages > 1 && (
+        <div className="w-full flex flex-col sm:flex-row sm:justify-center sm:items-center gap-4 pt-4">
+          <nav className="inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
             <button
-              key={index}
-              disabled={page === '...'}
-              onClick={() => typeof page === 'number' && paginate(page)}
-              className={`px-3 py-1 rounded text-sm font-medium transition-all duration-200 ${
-                page === currentPage
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-              } ${page === '...' ? 'cursor-default' : ''}`}
+              onClick={() => paginate(1)}
+              disabled={currentPage === 1}
+              className={`relative inline-flex items-center px-2 py-2 rounded-l-md border ${theme === 'dark' ? 'border-gray-700 bg-gray-800 text-gray-400 hover:bg-gray-700' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'} text-sm font-medium`}
             >
-              {page}
+              <span className="sr-only">First</span>
+              <FaChevronLeft className="h-4 w-4 mr-1" />
+              <FaChevronLeft className="h-4 w-4" />
             </button>
-          ))}
-          <button
-            onClick={() => paginate(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="px-2 py-1 text-sm bg-gray-700 text-white rounded disabled:opacity-50"
-          >
-            <FaChevronRight />
-          </button>
+            <button
+              onClick={() => paginate(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={`relative inline-flex items-center px-2 py-2 border ${theme === 'dark' ? 'border-gray-700 bg-gray-800 text-gray-400 hover:bg-gray-700' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'} text-sm font-medium`}
+            >
+              <span className="sr-only">Previous</span>
+              <FaChevronLeft className="h-5 w-5" aria-hidden="true" />
+            </button>
+            {getPageRange().map((page, index) => (
+              <button
+                key={index}
+                onClick={() => typeof page === 'number' && paginate(page)}
+                className={`relative inline-flex items-center px-4 py-2 border ${
+                  currentPage === page
+                    ? 'z-10 bg-blue-600 text-white'
+                    : theme === 'dark'
+                    ? 'border-gray-700 bg-gray-800 text-gray-400 hover:bg-gray-700'
+                    : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'
+                } text-sm font-medium ${typeof page !== 'number' ? 'cursor-default' : ''}`}
+              >
+                {page}
+              </button>
+            ))}
+            <button
+              onClick={() => paginate(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className={`relative inline-flex items-center px-2 py-2 border ${theme === 'dark' ? 'border-gray-700 bg-gray-800 text-gray-400 hover:bg-gray-700' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'} text-sm font-medium`}
+            >
+              <span className="sr-only">Next</span>
+              <FaChevronRight className="h-5 w-5" aria-hidden="true" />
+            </button>
+            <button
+              onClick={() => paginate(totalPages)}
+              disabled={currentPage === totalPages}
+              className={`relative inline-flex items-center px-2 py-2 rounded-r-md border ${theme === 'dark' ? 'border-gray-700 bg-gray-800 text-gray-400 hover:bg-gray-700' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'} text-sm font-medium`}
+            >
+              <span className="sr-only">Last</span>
+              <FaChevronRight className="h-4 w-4 mr-1" />
+              <FaChevronRight className="h-4 w-4" />
+            </button>
+          </nav>
+
+          <div className="flex items-center gap-2">
+            <label htmlFor="pageSize" className="text-sm text-gray-400">
+              Show:
+            </label>
+            <select
+              id="pageSize"
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className={`text-sm px-2 py-1 rounded-md border focus:outline-none focus:ring-2 focus:ring-yellow-400 ${theme === 'dark' ? 'bg-[#2a2e3a] text-white border-[#3a3f4b]' : 'bg-white text-black border-gray-300'}`}
+            >
+              {[10, 25, 50, 100].map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       )}
-
-      {/* Player Count Selector */}
-      <div className="flex justify-end">
-        <label className="text-sm mr-2">Show:</label>
-        <select
-          className="bg-gray-700 text-white p-1 rounded border border-gray-600"
-          value={playersPerPage}
-          onChange={(e) => {
-            setPlayersPerPage(Number(e.target.value));
-            setCurrentPage(1);
-          }}
-        >
-          {[10, 25, 50, 100].map((count) => (
-            <option key={count} value={count}>
-              {count}
-            </option>
-          ))}
-        </select>
-      </div>
     </div>
   );
 }

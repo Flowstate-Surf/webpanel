@@ -13,5 +13,5 @@ export default function LeaderboardPage() {
       </main>
       <Footer />
     </div>
-  )
+  );
 }

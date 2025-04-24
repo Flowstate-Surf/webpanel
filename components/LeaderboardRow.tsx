@@ -8,15 +8,14 @@ interface Player {
   name: string;
   points: number;
   rank: number;
-  mapsCompleted: number;
-  serverRecords: number;
-  bonusRecords: number;
-  stageRecords: number;
+  mapsCompleted?: number;
+  serverRecords?: number;
+  bonusRecords?: number;
+  stageRecords?: number;
 }
 
 interface LeaderboardRowProps {
   player: Player;
-  getPointsStyle: (rank: number) => string;
   isHighlighted?: boolean;
 }
 
@@ -27,8 +26,15 @@ const getTrophyColor = (rank: number) => {
   return '';
 };
 
+const getPointsStyle = (rank: number): string => {
+  if (rank <= 3) return 'bg-yellow-500 text-black';
+  if (rank <= 10) return 'bg-purple-500 text-white';
+  if (rank <= 100) return 'bg-blue-500 text-white';
+  return 'bg-gray-700 text-white';
+};
+
 const LeaderboardRow = forwardRef<HTMLDivElement, LeaderboardRowProps>(
-  ({ player, getPointsStyle, isHighlighted = false }, ref) => {
+  ({ player, isHighlighted = false }, ref) => {
     const [expanded, setExpanded] = useState(false);
     const trophyColor = getTrophyColor(player.rank);
     const pointsStyle = getPointsStyle(player.rank);
@@ -83,10 +89,10 @@ const LeaderboardRow = forwardRef<HTMLDivElement, LeaderboardRowProps>(
 
         {expanded && (
           <div className="bg-[#252b3d] px-6 py-4 text-sm text-gray-300 space-y-2">
-            <p><span className="text-white font-medium">Maps Completed:</span> {player.mapsCompleted}</p>
-            <p><span className="text-white font-medium">Server Records:</span> {player.serverRecords}</p>
-            <p><span className="text-white font-medium">Bonus Records:</span> {player.bonusRecords}</p>
-            <p><span className="text-white font-medium">Stage Records:</span> {player.stageRecords}</p>
+            <p><span className="text-white font-medium">Maps Completed:</span> {player.mapsCompleted ?? 0}</p>
+            <p><span className="text-white font-medium">Server Records:</span> {player.serverRecords ?? 0}</p>
+            <p><span className="text-white font-medium">Bonus Records:</span> {player.bonusRecords ?? 0}</p>
+            <p><span className="text-white font-medium">Stage Records:</span> {player.stageRecords ?? 0}</p>
           </div>
         )}
       </div>
