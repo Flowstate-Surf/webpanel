@@ -24,7 +24,7 @@ export default function Footer() {
               <ul className="space-y-2">
                 <li>
                   <Link 
-                    href="https://discord.gg/n4xCDWrQRB" 
+                    href="https://discord.gg/6hbbs7mEuT" 
                     className="text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
                   >
                     Discord Support
@@ -38,6 +38,7 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">&copy; 2024 JKE. All rights reserved.</p>
             <p className="text-sm text-gray-500 dark:text-gray-500 mt-2 md:mt-0">Coded with ❤️ by JKE</p>
+            <p className="text-sm text-gray-500 dark:text-gray-500 mt-2 md:mt-0">Further Developed by FlowState</p>
           </div>
         </div>
       </div>

@@ -88,7 +88,7 @@ const LeaderboardRow = forwardRef<HTMLDivElement, LeaderboardRowProps>(
         </div>
 
         {expanded && (
-          <div className="bg-[#252b3d] px-6 py-4 text-sm text-gray-300 space-y-2">
+          <div className="columns-2 bg-[#252b3d] px-6 py-4 text-sm text-gray-300 space-y-2">
             <p><span className="text-white font-medium">Maps Completed:</span> {player.mapsCompleted ?? 0}</p>
             <p><span className="text-white font-medium">Server Records:</span> {player.serverRecords ?? 0}</p>
             <p><span className="text-white font-medium">Bonus Records:</span> {player.bonusRecords ?? 0}</p>
