@@ -1,4 +1,4 @@
-import Leaderboard from '@/components/Leaderboard'
+import Leaderboard from '@/components/leaderboard/Leaderboard'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 

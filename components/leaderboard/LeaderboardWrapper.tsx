@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import LeaderboardRow from './LeaderboardRow';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme } from '../../context/ThemeContext';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 interface PlayerData {
